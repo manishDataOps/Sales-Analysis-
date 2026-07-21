@@ -22,6 +22,7 @@ MAX(CASE WHEN year = '2023' THEN yoy_profit_growth END) AS previous_year_gwt,
 MAX(CASE WHEN year = '2024' THEN yoy_profit_growth END) - MAX(CASE WHEN year = '2023' THEN yoy_profit_growth END) AS growth_rate_diff
 FROM CTE;
 
+-- MONTH WISE GROWTH RATE COMPARISION
 WITH CTE AS (
     SELECT
 YEAR(order_date) AS year,
@@ -51,7 +52,43 @@ CAST(
     CASE WHEN [2023] <0 AND [2024] >0 THEN 100
     WHEN [2023] >0 AND [2024] <0 THEN -100 ELSE 
     ([2024] * 100.0 / [2023]) -100 END AS DECIMAL(5,2)) AS '2024 growth rate%'    
-FROM monthly_growth
+FROM monthly_growth;
+
+-- REGION WISE PROFIT ANALYSIS
+WITH CTE AS(
+    SELECT
+YEAR(t.order_date) AS year,
+r.region,
+SUM(t.profit) AS profit
+FROM sales_rawdata t
+INNER JOIN region_dem r
+ON t.region_id = r.region_id
+WHERE YEAR(t.order_date) IN (2022,2023,2024)
+GROUP BY YEAR(t.order_date), r.region ),
+region_wise_tab AS(
+    SELECT
+region,
+ISNULL([2022],0) AS '2022',
+ISNULL([2023],0) AS '2023',
+ISNULL([2024],0) AS '2024'
+FROM CTE
+PIVOT(
+    SUM(profit)
+    FOR year IN ([2022],[2023],[2024])
+) AS pvt 
+ )
+SELECT
+region,[2022],[2023],[2024],
+([2023] * 100.0 / [2022]) - 100 AS 'growth_of_2023',
+([2024] * 100.0 / [2023]) - 100 AS 'growth_of_2024'
+FROM region_wise_tab ;
+
+
+
+SELECT NAME FROM SYS.TABLES;
+
+SELECT * FROM region_dem
+
 
 
 
