@@ -1,9 +1,9 @@
 --DASHBOARD PROFIT GROWTH TREND ANALYSIS
 
 -- connect with database
-USE sales_analysis_db;
+-- USE sales_analysis_db;
 --database table over vioew
-SELECT name FROM sys.tables;
+-- SELECT name FROM sys.tables;
 
 -- bussines problum statement
 WITH CTE AS (
@@ -103,14 +103,18 @@ FROM CTE
 PIVOT(
     SUM(profit)
     FOR year IN ([2022],[2023],[2024])
-) AS pvt )
-SELECT
+) AS pvt ),
+growth_calculation AS(
+    SELECT
 category,
 [2022],[2023],[2024],
-CAST(([2023] * 100.0 / [2022]) AS DECIMAL(5,2)) AS 'YoY Growth % (2023 vs 2022)',
-CAST(([2024] * 100.0 / [2023]) AS DECIMAL(5,2)) AS 'YoY Growth % (2024 vs 2023)',
-CAST(([2024] * 100.0 / [2023]) AS DECIMAL(5,2)) - CAST(([2023] * 100.0 / [2022]) AS DECIMAL(5,2)) AS 'Growth Difference'
-FROM category_wise ;
+CAST(([2023] * 100.0 / [2022]) AS DECIMAL(5,2)) - 100 AS 'YoY Growth % (2023 vs 2022)',
+CAST(([2024] * 100.0 / [2023]) AS DECIMAL(5,2))-100 AS 'YoY Growth % (2024 vs 2023)'
+FROM category_wise )
+SELECT
+category,[2022],[2023],[2024],[yoy growth % (2023 vs 2022)],[yoy growth % (2024 vs 2023)],
+[yoy growth % (2024 vs 2023)] - [yoy growth % (2023 vs 2022)] AS growth_diff
+FROM growth_calculation
 
 
 
