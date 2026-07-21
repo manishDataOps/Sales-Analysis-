@@ -83,13 +83,34 @@ region,[2022],[2023],[2024],
 ([2024] * 100.0 / [2023]) - 100 AS 'growth_of_2024'
 FROM region_wise_tab ;
 
-
-
-SELECT NAME FROM SYS.TABLES;
-
-SELECT * FROM region_dem
-
-
+WITH CTE AS(
+    SELECT
+YEAR(t.order_date) AS year,
+p.category,
+SUM(t.profit) AS profit
+FROM sales_rawdata t
+INNER JOIN product_dem p
+ON t.product_id_ = p.product_id_
+WHERE YEAR(t.order_date) IN (2022,2023,2024)
+GROUP BY YEAR(t.order_date),p.category ),
+category_wise AS (
+    SELECT
+category,
+ISNULL([2022],0) AS '2022',
+ISNULL([2023],0) AS '2023',
+ISNULL([2024],0) AS '2024'
+FROM CTE
+PIVOT(
+    SUM(profit)
+    FOR year IN ([2022],[2023],[2024])
+) AS pvt )
+SELECT
+category,
+[2022],[2023],[2024],
+CAST(([2023] * 100.0 / [2022]) AS DECIMAL(5,2)) AS 'YoY Growth % (2023 vs 2022)',
+CAST(([2024] * 100.0 / [2023]) AS DECIMAL(5,2)) AS 'YoY Growth % (2024 vs 2023)',
+CAST(([2024] * 100.0 / [2023]) AS DECIMAL(5,2)) - CAST(([2023] * 100.0 / [2022]) AS DECIMAL(5,2)) AS 'Growth Difference'
+FROM category_wise ;
 
 
 
